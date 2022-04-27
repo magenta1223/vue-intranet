@@ -30,7 +30,7 @@ class PostView( mixins.RetrieveModelMixin, generics.GenericAPIView):
         return post #Response(post, status=status.HTTP_200_OK)
 
     def create(self, kwargs):
-        print(kwargs)
+        
         user = get_object_or_404(User, pk = kwargs['user_id'])
         category = get_object_or_404(Category, pk = kwargs['category_id'])
         
@@ -43,10 +43,22 @@ class PostView( mixins.RetrieveModelMixin, generics.GenericAPIView):
         return Response(status=status.HTTP_200_OK)
 
 
-    def update(self, wrapper):
+    def update(self, wrapper, request):
         # https://www.codegrepper.com/code-examples/python/customise+the+django+rest+api+view
+
+        # 일단 수정 후 serialize
+        post = wrapper.post
+        query_params = request.query_params
+        post.title = query_params['title']
+        post.content = query_params['content']
+        post.category = get_object_or_404(Category, pk = query_params['category_id'])
+        post.save()
+        
+        # title, content, category
+
         post = self.serializer_class(wrapper.post).data
         post['model'] = 'post'
+
         
         return post #Response(post, status=status.HTTP_200_OK)
 

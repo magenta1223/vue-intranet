@@ -68,7 +68,7 @@ class WrapperDetailView(generics.GenericAPIView):
 
     # get
     def get(self, request, *args, **kwargs):
-        print('view chain test')
+        print('wrapper detail')
         primary_key = request.parser_context['kwargs']['pk']
         
         # 이걸 각 model에 알맞은 view로 연결
@@ -81,6 +81,34 @@ class WrapperDetailView(generics.GenericAPIView):
         # 여기서 replyset하고 comment set을 줘야 함
         serializer = WrapperSerializer(wrapper)
 
+        contents['reply_set'] = serializer.data['reply_set']
+
+        print(contents)
+        
+    
+        return Response(contents, status= status.HTTP_200_OK)
+
+class WrapperUpdateView(generics.GenericAPIView):
+    serializer_class = WrapperSerializer
+    queryset = Wrapper.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    # get
+    def post(self, request, *args, **kwargs):
+        print('view update')
+        primary_key = request.parser_context['kwargs']['pk']
+        
+        # 이걸 각 model에 알맞은 view로 연결
+        # 여기서
+
+        wrapper = get_object_or_404(Wrapper, pk = primary_key)
+        contents = CONTENTS_VIEW_DICT[request.query_params['content_type']].update(wrapper, request)
+        
+        # update
+
+        
+        # 여기서 replyset하고 comment set을 줘야 함
+        serializer = WrapperSerializer(wrapper)
         contents['reply_set'] = serializer.data['reply_set']
         
     

@@ -96,7 +96,9 @@ export default {
                 this.$router.push({
                     name : 'board_create',
                     params : {
-                        category_id : this.category_id
+                        wrapper_id : -1,
+                        category_id : this.category_id,
+                        update : false,
                     }
                 })
             }
