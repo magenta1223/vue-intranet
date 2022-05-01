@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'authentication',
     'core',
     'board',
+    'event',
     
     #django-rest-auth
     'rest_framework',
@@ -201,3 +202,10 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=28),
 }
+
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1)
+    }
+

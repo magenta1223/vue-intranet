@@ -11,7 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User  # 모델 설정
-        fields = ('id', 'username', 'age', 'city', 'password')  # 필드 설정
+        fields = ('id', 'username', 'password')  # 필드 설정
 
 
 
@@ -21,13 +21,11 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'age', 'city', 'password')  # 필드 설정
+        fields = ('id', 'username', 'password')  # 필드 설정
 
     def create(self, validated_data):
         user = User.objects.create_user(
             username = validated_data['username'],
-            age = validated_data['age'],
-            city = validated_data['city'],
             password = validated_data['password']
         )
         return user

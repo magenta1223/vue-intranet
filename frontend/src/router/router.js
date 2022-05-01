@@ -2,12 +2,17 @@ import VueRouter from 'vue-router'
 
 // my apps
 
-import Home from '../App_copy.vue'
-import Login from '../components/Login.vue'
-import Register from '../components/Register.vue'
-import Detail from '../components/PostDetail.vue'
-import Board from '../components/Board.vue'
-import BoardCreate from '../components/BoardCreate.vue'
+import Login from '../components/Auth/Login.vue'
+import Register from '../components/Auth/Register.vue'
+
+// post
+import PostList from '../components/Board/PostList.vue'
+import PostCreate from '../components/Board/PostCreate.vue'
+import PostRetrieval from '../components/Board/PostRetrieval.vue'
+
+// calendar & events
+import ToastCalendar from '../components/Calendar/Calendar.vue'
+
 
 
 // 중첩 라우팅
@@ -16,11 +21,7 @@ import BoardCreate from '../components/BoardCreate.vue'
 const router = new VueRouter({
 	mode:'history', //해쉬값 제거 방식
     routes: [
-        {
-            path: '/', 
-            component: Home, //  
-            name : 'home'
-        },
+
         {
             path: '/login', 
             component: Login, //  
@@ -34,23 +35,48 @@ const router = new VueRouter({
 
         },
         {
-            path: '/board/:category_id', // dynamic routing https://whwl.tistory.com/39
-            component: Board, //  
-            name : 'board'
+            path: '/post/:category_id', // dynamic routing https://whwl.tistory.com/39
+            component: PostList, //  
+            name : 'postlist'
 
         },
         {
-            path: '/detail', 
-            component: Detail, //  
-            name : 'detail'
+            path: '/post/:category_id/create', 
+            component: PostCreate, //  
+            name : 'post_create'
         },
         {
-            path: '/board/:category_id/create', 
-            component: BoardCreate, //  
-            name : 'board_create'
-        }
+            path: '/post_retrieval', 
+            component: PostRetrieval, //  
+            name : 'post_retrieval'
+        },
+        {
+            path: '/calendar', 
+            component: ToastCalendar, //  
+            name : 'calendar'
+        },
     ]
 });
+
+
+// router.beforeEach(async(to, from, next) => {
+
+//     // accesstoken을 가져왔는데 없고
+//     // refreshtoken은 있음
+//     // 갱신
+//     if (VueCookies.get('token') === null && VueCookies.get('refresh_token') !== null){
+//         await refreshToken()
+//     }
+
+//     // 몰라
+//     if (to.matched.some(record => record.meta.unauthorized) || VueCookies.get('token')){
+//         return next()
+//     }
+
+//     // 로그인
+//     alert('login please')
+//     return next('/login')
+// })
 
 
 export default router

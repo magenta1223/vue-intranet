@@ -26,9 +26,11 @@ class WrapperSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'author',
+            'title',
             'create_date',
             'modify_date',
             'post',
+            'event',
             'reply_set')
 
     

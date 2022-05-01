@@ -15,8 +15,8 @@
 </template>
 
 <script>
-import Login from "./components/Login.vue"
-import SideBar from './components/SideBar.vue'
+import Login from "./components/Auth/Login.vue"
+import SideBar from './components/Main/SideBar.vue'
 import axios from "axios";
 import setToken from "./js_utils/token.js"
 import router from './router/router.js'

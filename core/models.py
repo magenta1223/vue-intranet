@@ -7,7 +7,7 @@ from picklefield.fields import PickledObjectField
 
 
 from board.models import *
-
+from event.models import *
 
 
 class Wrapper(models.Model):
@@ -18,9 +18,14 @@ class Wrapper(models.Model):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name= '작성자',on_delete=models.CASCADE, null=True) # on_delete : 계정 삭제 시 작성 질문 모두 삭제
     create_date = models.DateTimeField(verbose_name= '작성일자', auto_now= True)
     modify_date = models.DateTimeField(verbose_name= '수정일자',null=True, blank=True)
+    title = models.CharField(max_length= 50)
     #content = PickledObjectField() # to assign multiple model into one field
-    post = models.ForeignKey(Post, on_delete= models.CASCADE, null= True, blank= True)
+    app_name = models.CharField(max_length=20)
+    
 
+    # one-to-one field
+    post = models.OneToOneField(Post, on_delete= models.CASCADE, null= True, blank= True)
+    event = models.OneToOneField(Event, on_delete= models.CASCADE, null= True, blank= True )
 
 class Reply(models.Model):
     """
