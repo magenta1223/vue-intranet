@@ -25,7 +25,7 @@
                         class="ma-2"
                         outlined
                         color="indigo"
-                        @click="CUPost()"
+                        @click="createOrUpdate()"
                         >
                         Create!  
                         </v-btn>
@@ -52,7 +52,6 @@ export default {
             update : false,
             category_id : -1,
             wrapper_id : -1
-
             }
         },
 
@@ -64,64 +63,63 @@ export default {
     // 그래서 mounted를 call하지 않음
     // mounted를 method화 하고, param을 watch하면서 변경될때마다 call하면 됨
     methods: {
-        CUPost : function(){
-            console.log(this.category_id)
-
-            if (this.update){
-
-                axios({
-                    method : "POST",
-                    url : url + 'update/' + this.wrapper_id,
-                    headers : setToken(),
+        createPost : function(){
+            let category_id = this.$route.params.category_id
+            console.log(url)
+            axios({
+                method : "POST",
+                url : url,
+                headers : setToken(),
+                params : {
+                    content_type : "post",
+                    category_id : category_id,
+                    user_id : localStorage.getItem('user'),
+                    title : this.title,
+                    content: this.content
+                }
+            })
+            .then(
+                router.push({
+                    name : "postlist",
                     params : {
-                        content_type : "post",
-                        category_id : this.category_id,
-                        user_id : localStorage.getItem('user'),
-                        title : this.title,
-                        content: this.content
+                        category_id : category_id
                     }
                 })
-                .then(
-                    router.push({
-                        name : "post_retrieval",
-                        params : {
-                            category_id : this.category_id,
-                            wrapper_id : this.wrapper_id,
-                            content_type : 'post',
-                        }
-                    })
-                )
-            } else {
-                let category_id = this.$route.params.category_id
-                console.log(url)
-                axios({
-                    method : "POST",
-                    url : url,
-                    headers : setToken(),
-                    params : {
-                        content_type : "post",
-                        category_id : category_id,
-                        user_id : localStorage.getItem('user'),
-                        title : this.title,
-                        content: this.content
-                    }
-                })
-                .then(
-                    router.push({
-                        name : "postlist",
-                        params : {
-                            category_id : category_id
-                        }
-                    })
-                )
-            }
-
-
+            )
         },
-    setValue : function(){
 
-    }
+        updatePost : function(){
+            axios({
+                method : "PUT",
+                url : url + this.wrapper_id + '/',
+                headers : setToken(),
+                params : {
+                    content_type : "post",
+                    category_id : this.category_id,
+                    user_id : localStorage.getItem('user'),
+                    title : this.title,
+                    content: this.content
+                }
+            }).then(
+                router.push({
+                    name : "post_retrieval",
+                    params : {
+                        category_id : this.category_id,
+                        wrapper_id : this.wrapper_id,
+                        content_type : 'post',
+                    }
+                })
+                )
+        },
+        
 
+        createOrUpdate : function(){
+            if (this.update){
+                this.updatePost()
+            } else {
+                this.createPost()
+            }
+        },
     },
 
     mounted() {
@@ -130,7 +128,6 @@ export default {
         this.update = this.$route.params.update
         this.category_id = this.$route.params.category_id
         this.wrapper_id = this.$route.params.wrapper_id
-
 
         if (this.update) {
             axios({
@@ -141,9 +138,9 @@ export default {
                     content_type : "post",
                 }
             })
-            .then(response => {
-                this.title = response.data.title
-                this.content = response.data.content
+            .then((response) => {
+                this.title = response.data.post.title
+                this.content = response.data.post.content
             })
             .catch(response => {
                 console.log("Failed", response);

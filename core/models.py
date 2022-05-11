@@ -26,6 +26,16 @@ class Wrapper(models.Model):
     # one-to-one field
     post = models.OneToOneField(Post, on_delete= models.CASCADE, null= True, blank= True)
     event = models.OneToOneField(Event, on_delete= models.CASCADE, null= True, blank= True )
+    eventgroup = models.OneToOneField(EventGroup, on_delete= models.CASCADE, null= True, blank= True )
+    def delete(self, *args, **kwargs):
+        if self.post:
+            self.post.delete()
+        elif self.event:
+            self.event.delete()
+        elif self.eventgroup:
+            self.eventgroup.delete()
+
+        super(Wrapper, self).delete(*args, **kwargs)
 
 class Reply(models.Model):
     """

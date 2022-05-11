@@ -76,7 +76,7 @@ export default {
             detail_route : ""
             }
         },
-    props: ["propsdata", "content_type", "category_id"],
+    props: ["items", "content_type", "category_id"],
 
     methods : {
         detail : function(wrapper_id) {
@@ -100,7 +100,6 @@ export default {
         create : function(){
 
             if (this.content_type === "post"){
-                console.log(this.category_id);
                 this.$router.push({
                     name : 'post_create',
                     params : {
@@ -117,21 +116,19 @@ export default {
         },
 
         set_page : function(){
-            this.page_length = parseInt(this.propsdata.length / 10) + 1 ;
+            this.page_length = parseInt(this.items.length / 10) + 1 ;
         },
         paging : function(page){
-            this.page_item = this.propsdata.slice( (page-1) * 10, page * 10)
+            this.page_item = this.items.slice( (page-1) * 10, page * 10)
         }
     },
     
     watch: { 
-        // () => 이런거 쓰면 개박살남
-        // 시부레..
-        'propsdata': function(newParam, oldParam) {
+        items : function(newParam, oldParam) {
             this.set_page();
             this.paging(1)
         },
-        'page': function(newParam, oldParam) {
+        page : function(newParam, oldParam) {
             // page에 따라서 propsdata를 수정하면 됨
             this.paging(newParam)
         },

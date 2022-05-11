@@ -10,8 +10,6 @@ class UserManager(BaseUserManager):
         if username is None:
             raise TypeError('Users must have a username.')
 
-
-
         if password is None:
             raise TypeError('Users must have a password.')
     
@@ -40,6 +38,8 @@ class UserManager(BaseUserManager):
         # 관리자로 지정
         user.is_superuser = True
         user.is_staff = True
+        user.name = "admin"
+        user.dateOfBirth = "1900-01-01"
         user.save()
         
         return user

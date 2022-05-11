@@ -1,7 +1,11 @@
 
-from rest_framework import serializers # serializer import
+from rest_framework import serializers
+
 from .models import * # 선언한 모델 import
 from django.contrib.auth import authenticate
+
+from board.serializers import PostSerializer # serializer import
+from event.serializers import *
 
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,19 +22,24 @@ class ReplySerializer(serializers.ModelSerializer):
 
 
 class WrapperSerializer(serializers.ModelSerializer):
-    #reply_set = serializers.StringRelatedField(many=True) # ReplySerializer(read_only = True, many = True)
+    # One to Many Field
     reply_set = ReplySerializer(many = True)
+    # One to One Field
+    post = PostSerializer()
+    event = EventSerializer()
+    eventgroup = EventGroupSerializer()
 
     class Meta:
         model = Wrapper
-        fields = (
-            'id',
-            'author',
-            'title',
-            'create_date',
-            'modify_date',
-            'post',
-            'event',
-            'reply_set')
+        fields = "__all__"
+        # fields = (
+        #     'id',
+        #     'author',
+        #     'title',
+        #     'create_date',
+        #     'modify_date',
+        #     'post',
+        #     'event',
+        #     'reply_set')
 
     

@@ -8,10 +8,10 @@
                 <v-col>  
                     <v-card class="elevation-0">
                         <v-card-title class ="text-h2 active text-start"> 
-                            {{this.item.title}}
+                            {{item.title}}
                         </v-card-title>
                         <v-card-text class="text-start"> 
-                            {{this.item.author}} &#183; {{parseDate(this.item.create_date, "YYYY-MM-DD HH:mm")}}
+                            {{item.author}} &#183; {{parseDate(item.create_date, "YYYY-MM-DD HH:mm")}}
                         </v-card-text>
                         <v-divider light></v-divider>
                     </v-card>
@@ -21,12 +21,12 @@
                 <v-col>
                     <v-flex>
                         <v-card id = "content" class ="text-start elevation-0">
-                            {{this.item.content}}
+                            {{item.content}}
                         </v-card>
                     </v-flex>
                 </v-col>
             </v-row>
-            <v-row v-if="user_id == this.item.author" class="text-start">
+            <v-row v-if="user_id == item.author" class="text-start">
                 <v-col>
                     <v-btn
                     class="ma-2"
@@ -51,7 +51,7 @@
             </v-row>
             <v-divider light></v-divider>
 
-            <Reply v-bind:reply_set="this.reply_set" v-bind:wrapper_id="this.wrapper_id" />
+            <Reply :reply_set="reply_set" :wrapper_id="wrapper_id" />
             
             
         </v-container>
@@ -90,16 +90,14 @@ export default {
         },
         deletePost : function(){
             axios({
-                method: "POST",
-                url : url + 'delete/' + this.wrapper_id ,
+                method: "DELETE",
+                url : url + this.wrapper_id ,
                 headers : setToken(),
-                
                 })
             .then(response => {
                 this.$router.push({
                     name : "postlist",
                     params : {
-                        
                         type : 'post',
                         category_id : this.category_id
                     }
@@ -108,13 +106,7 @@ export default {
             .catch(response => {
                 console.log("Failed", response);
             });
-
-
-
-
-
         },
-
     },
 
     mounted() {
@@ -122,24 +114,28 @@ export default {
         this.wrapper_id = this.$route.params.wrapper_id;
         this.category_id = this.$route.params.category_id;
 
-        console.log(this.category_id);
         
         this.user_id = localStorage.getItem('user');
-        console.log(this.user_id);
 
         // type을 params로 끼워서 보내고
         // template도 type 별로 여러 개 만들고
+        // axios({
+        //     method: "GET",
+        //     url : url + this.wrapper_id ,
+        //     headers : setToken(),
+        //     params : {content_type : 'post'}
+        // })
         axios({
             method: "GET",
             url : url + this.wrapper_id ,
             headers : setToken(),
-            params : {content_type : 'post'}
+            params : {
+                content_type : 'post'
+                }
         })
-        .then(response => {
-            
-            this.item = response.data
+        .then(response => {            
+            this.item = response.data.post
             this.reply_set = response.data.reply_set
-            
         })
         .catch(response => {
             console.log("Failed", response);

@@ -4,92 +4,134 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import generics 
+from rest_framework import status, generics, viewsets
 
 import json
+from django.db.models import Q
 
 
 from .serializers import * 
 from .models import * 
 
 
-from authentication.models import *
-from core.models import *
+from authentication.models import User
+from core.models import Wrapper
+from core.serializers import WrapperSerializer
+from datetime import datetime, timedelta, timezone
 
 
-
-
-
-class EventView(generics.GenericAPIView):
+class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
-    queryset = Event.objects.all()
+    queryset = Wrapper.objects.all()
     permission_classes = [IsAuthenticated]
 
-    def get(self, wrapper):
-        # https://www.codegrepper.com/code-examples/python/customise+the+django+rest+api+view
-        event = self.serializer_class(wrapper.event).data
-        event['model'] = 'event'
+    def list(self, kwargs):
+        if kwargs['view_type'] == 'table':
+            query_set = self.queryset.filter(
+            Q(app_name__iexact = "event"))
 
-        # id: '1', # 있음
-        # calendarId: '0', # 없음. 필요
-        # title: 'TOAST UI Calendar Study', # 없음. 필요 
-        # category: 'time', # 이건 computed attribute로 넣자
-        # dueDateClass: '', # ? 
-        # start: today.toISOString(), # 있음
-        # end: getDate('hours', today, 3, '+').toISOString() # 있음 
-        
-        return event #Response(post, status=status.HTTP_200_OK)
+            serializer = WrapperSerializer(data=query_set, many = True)
+            serializer.is_valid()
 
+            return Response(serializer.data)
+
+        else:
+            # query_set = Event.objects.all()
+                
+            query_set = self.queryset.filter(
+                Q(app_name__iexact = "event")).filter(
+                #private event가 아니거나
+                Q(event__group__is_private = False) |
+                # 내가 포함된 이벤트거나
+                Q(event__group__user__id = kwargs['user_id']) |
+                Q(event__relatedPeople__id__icontains = kwargs['user_id'])
+                )
+
+
+            print(query_set)
+
+
+            serializer = WrapperSerializer(data= query_set, many = True)
+            serializer.is_valid()
+
+            user = get_object_or_404(User, pk = kwargs['user_id'])
+
+            eventgroups = EventGroup.objects.all().filter(
+                Q(user = user) | 
+                Q(is_private = False)
+            )
+            eventgroups = EventGroupSerializer(data = eventgroups, many = True)
+            eventgroups.is_valid()
+            return Response({'data' : serializer.data, 'eventgroups' : eventgroups.data},  status= status.HTTP_200_OK)
+            
     def create(self, kwargs):
-        
         user = get_object_or_404(User, pk = kwargs['user_id'])
         eventgroup = get_object_or_404(EventGroup, pk = kwargs['event_group_id'])
-
+                
         event = Event(
             start = kwargs['start'],
             end = kwargs['end'],
             author = user,
             group = eventgroup,
-            title = kwargs['title']
+            title = kwargs['title'],
+            description = kwargs['description']
             )
         event.save()
-        
-        # relatedPeople fields are many-to-many
-        for rp in kwargs['relatedPeople']:
-            user = get_object_or_404(User, pk = rp)
-            event.relatedPeople.add(user)
-        event.save()
 
-        wrapper = Wrapper(author = user, event = event, title = kwargs['title'])
-        wrapper.save() 
+        if not kwargs['is_private']:
+            # relatedPeople fields are many-to-many
+            users= User.objects.all().filter(Q(id__in = kwargs['attendees']))
+            event.relatedPeople.add(*users)
+            event.save()
+        wrapper = Wrapper(
+            author = user,
+            event = event,
+            title = kwargs['title'],
+            app_name = "event"
+            )
+        wrapper.save()
+        wrapper = WrapperSerializer(wrapper)
 
-        return Response(status=status.HTTP_200_OK)
 
+        return wrapper.data
 
-    def update(self, wrapper, request):
-        # https://www.codegrepper.com/code-examples/python/customise+the+django+rest+api+view
-
+    def update(self, wrapper, kwargs):
         # update
         event = wrapper.event
-        query_params = request.query_params
-
-        event.start = query_params['start']
-        event.end = query_params['end']
-        event.color = query_params['color']
-        
+        event.start = kwargs['start']
+        event.end = kwargs['end']
         event.relatedPeople.clear()
-
-        for rp in query_params['relatedPeople']:
-            user = get_object_or_404(User, pk = rp)
-            event.relatedPeople.add(user)
-
+        #users= User.objects.all().filter(Q(id__in = kwargs['attendees']))
+        #event.relatedPeople.add(*users)
+        event.group = get_object_or_404(EventGroup, pk = kwargs['event_group_id'])
+        event.title = kwargs['title']
+        event.description = kwargs['description']
         event.save()
-        
         # serialize
-
-        event = self.serializer_class(wrapper.event).data
+        event = self.serializer_class(event).data
         event['model'] = 'event'
+        return event 
 
-        return event #Response(post, status=status.HTTP_200_OK)
+
+class EventGroupViewSet(viewsets.ModelViewSet):
+    serializer_class = EventGroupSerializer
+    queryset = Wrapper.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def create(self, kwargs):
+        user = get_object_or_404(User, pk = kwargs['user_id'])
+        eventgroup = EventGroup(
+            type = kwargs['type'],
+            name = kwargs['name'],
+            color = kwargs['color'],
+            is_private =  True if kwargs['is_private'] == 'true' else False,
+            user = user,
+            )
+        eventgroup.save()
+        wrapper = Wrapper(author = user, eventgroup = eventgroup, title = kwargs['name'])
+        wrapper.save()
+        eventgroup = EventGroupSerializer(eventgroup)
+
+
+        return eventgroup.data
 

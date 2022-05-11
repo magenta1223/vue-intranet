@@ -7,10 +7,14 @@ from .managers import UserManager
 from django.contrib.auth.models import PermissionsMixin
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.EmailField(verbose_name = '이메일', unique=True)
-
-    
+    username = models.EmailField(verbose_name = '이메일', unique=True)    
     objects = UserManager()
+
+    vacation = models.IntegerField(default = 0, blank= True, null = True)
+    
+    name = models.CharField(max_length= 20,  blank= True, null = True)
+    dateOfBirth = models.DateTimeField( blank= True, null = True)
+    
     # User 모델의 필수 field
     is_active = models.BooleanField(default=True)    
     is_staff = models.BooleanField(default=False)

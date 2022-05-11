@@ -1,4 +1,5 @@
 
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets # vieset import
 from .serializers import UserSerializer, RegisterSerializer, LoginSerializer # 생성한 serializer import
 from .models import User # User model import
@@ -8,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_jwt.serializers import VerifyJSONWebTokenSerializer
-from rest_framework import status, mixins
+from rest_framework import status, mixins, generics
 
 
 
@@ -26,11 +27,24 @@ class UserViewSet(viewsets.ModelViewSet): # ModelViewSet 활용
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def update(self, request, pk = None):
+        kwargs = request.query_params
+        user = get_object_or_404(User, pk = pk)
+        user.name = kwargs['name']
+        if kwargs['password']:
+            user.password = kwargs['password']
+        user.dateOfBirth = kwargs['dateOfBirth']
+        user.save()
+
+        return Response({}, status= status.HTTP_200_OK)
+
+
 
 
 # 따로 만듭시다
 
-@permission_classes([AllowAny]) #모든 사용자 접근가능
+#@permission_classes([AllowAny]) #모든 사용자 접근가능
+# 사실 얘도. . 필요 없는게.. ? 
 class RegisterView(generics.GenericAPIView):
     serializer_class = RegisterSerializer
     def post(self, request, *args,  **kwargs):
@@ -55,8 +69,6 @@ class LoginView(generics.GenericAPIView):
         user = serializer.validated_data['user']
         access_token = serializer.validated_data['access_token']
         refresh_token = serializer.validated_data['refresh_token']
-
-
 
         if user.id == "None":
             return Response({"message": "fail"}, status=status.HTTP_401_UNAUTHORIZED)

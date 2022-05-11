@@ -4,28 +4,29 @@
         <v-row>
             <v-col  cols="2" sm="2" md="2" lg="3" xl="3">
                 <v-navigation-drawer class= "sidebar" v-model="drawer" app permanent expand-on-hover :mini-variant.sync="mini">
-                    <v-list-item class="px-2">
-                        <v-list-item-avatar>
-                        <v-img src="https://randomuser.me/api/portraits/men/85.jpg"></v-img>
-                        </v-list-item-avatar>
+                    <v-list dense> 
+                        <v-list-item class="px-2">
+                            <v-list-item-avatar>
+                                <v-img src="https://randomuser.me/api/portraits/men/85.jpg"></v-img>
+                            </v-list-item-avatar>
 
-                        <v-list-item-title>
-                            John Leider
-                        </v-list-item-title>
-                        <v-btn icon @click.stop="mini = !mini">
-                            <v-icon>mdi-chevron-left</v-icon>
-                        </v-btn>
-                    </v-list-item>
-                    <v-list dense>
+                            <v-list-item-title>
+                                {{username}}
+                            </v-list-item-title>
+                            <v-btn icon @click.stop="mini = !mini">
+                                <v-icon>mdi-chevron-left</v-icon>
+                            </v-btn>
+                        </v-list-item>
+                        <v-list-item>
+                            <router-link :to="{name : 'profile'}"> Profile </router-link>
+                        </v-list-item>
                         <v-list-item link>
                             <v-list-item-content @click="Logout">
                                 Logout
                             </v-list-item-content>
                         </v-list-item>
-                    </v-list>
-                    <v-divider></v-divider>
+                        <v-divider></v-divider>
 
-                    <v-list dense>
                         <v-list-item link>
                             <router-link to="/">home </router-link>
                         </v-list-item>
@@ -59,6 +60,10 @@
 
 
 <script>
+import axios from 'axios';
+import setToken from "../../js_utils/token.js"
+
+let url = 'http://localhost:8000/user/'
 
 export default {
     data () {
@@ -70,15 +75,35 @@ export default {
             { title: 'Users', icon: 'mdi-account-group-outline' },
             ],
             mini: true,
+            username : ""
         }
         },
     props: ["login", "categories"],
 
     methods : {
-        Logout : () => {
+        Logout : function() {
             localStorage.removeItem('access_token');
             location.reload();
         },
+
+    },
+
+    mounted() {
+        let user = localStorage.getItem('user')
+
+        axios({
+            method : "GET",
+            url : url + user,
+            headers: setToken(),
+            params : {
+                user_id : user
+            }
+        }).then((response) => {
+            this.username = response.data.name
+            
+        }).catch((response) => {
+            console.log("Failed", response)
+        })
     }
 }
 </script>

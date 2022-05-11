@@ -18,7 +18,7 @@
                 class="ma-2"
                 outlined
                 color="indigo"
-                @click="reply_create()"
+                @click="replyCreate()"
                 >
                 Reply  
                 </v-btn>
@@ -31,11 +31,17 @@
                 
                 <v-card class = "elevation0" outlined>
                     <div class = "box">
-                        <v-card-text v-if="user_id == reply.author" class="text-start">
-                            {{reply.author}} &#183; {{parseDate(reply.create_date, "YYYY-MM-DD HH:mm", false)}} &#183; <a @click="update_reply(reply, index)">수정</a> &#183; <a @click="delete_reply(reply, index)">삭제</a>
+                        <v-card-text
+                        v-if="user_id == reply.author"
+                        class="text-start">
+                            {{reply.author}} &#183;
+                            {{parseDate(reply.create_date, "YYYY-MM-DD HH:mm", false)}} &#183;
+                            <a @click="prepareUpdate(reply, index)">수정</a> &#183;
+                            <a @click="deleteReply(reply, index)">삭제</a>
                         </v-card-text>
                         <v-card-text v-else class="text-start">
-                            {{reply.author}} &#183; {{parseDate(reply.create_date, "YYYY-MM-DD HH:mm", false)}}
+                            {{reply.author}} &#183;
+                            {{parseDate(reply.create_date, "YYYY-MM-DD HH:mm", false)}}
                         </v-card-text>
 
                         <v-container v-if="reply.update">
@@ -54,7 +60,7 @@
                                 class="ma-2"
                                 outlined
                                 color="indigo"
-                                @click="save_reply(reply, replyNow)"
+                                @click="updateReply(reply, replyNow)"
                                 >
                                 Update  
                                 </v-btn>
@@ -113,46 +119,26 @@ export default {
     methods : {
         parseDate,
 
-        fetchReplies : function() {
-            console.log('fetch', this.wrapper_id)
-
-            axios({
-                method: "GET",
-                url : url + 'list/',
-                headers : setToken(),
-                params : {wrapper_id : this.wrapper_id}
-            })
-            .then(response => {
-                this.reply_set = response.data.reply_set
-                
-            })
-            .catch(response => {
-                console.log("Failed", response);
-            });
-
-        },
-
         set_page : function(){
-            this.page_length = parseInt(this.reply_set.length / 10) + 1 ;
+            this.page_length = parseInt((this.reply_set.length - 1) / 10) + 1 ;
         },
 
         paging : function(page){
             this.repliesNowPage = this.reply_set.slice( (page-1) * 10, page * 10)
         },
 
-        reply_create : function(){
+        replyCreate : function(){
             axios({
                 method : "POST",
                 url : url,
                 headers : setToken(),
                 params : {
-                    // 어차피 board 전용임
                     "wrapper_id" : this.wrapper_id,
                     "reply" : this.reply,
                     "user_id" : localStorage.getItem('user')
                 }
             })
-            .then(response => { // arrow를 써야 this를 쓸 수 있다고 함
+            .then((response) => {
                 this.reply = "";
                 this.reply_set.push(response.data)
                 }
@@ -160,24 +146,25 @@ export default {
             
         },
 
-        update_reply : function(reply, index){
+        prepareUpdate : function(reply, index){
             if (this.updating_reply > -1){
+                // 이전에 업데이트하고 있었던 reply의 update 취소
                 this.repliesNowPage[this.updating_reply].update = false
             }
-            this.updating_reply = index
+            // 현재 update하는 reply 정보
+            this.updating_reply = index 
             reply.update = true
             this.replyNow = reply.content
             this.paging(this.page); //새로고침 해야 textfield가 나옴
         },
 
-        save_reply : function(reply, replyNow){
+        updateReply : function(reply, replyNow){
             reply.content = replyNow;
             axios({
-                method: "POST",
+                method: "PUT",
                 url : url + reply.id,
                 headers : setToken(),
                 params : {
-                    // 어차피 board 전용임
                     "content" : replyNow
                 }
             })
@@ -189,25 +176,21 @@ export default {
             });
             reply.update = false
             this.updating_reply = -1
-
         },
 
-        delete_reply : function(reply, index){
+        deleteReply : function(reply, index){
             axios({
-                method: "POST",
-                url : url + 'delete/' + reply.id,
+                method: "DELETE",
+                url : url + reply.id,
                 headers : setToken(),
             })
             .then((response) => {
-                this.reply_set = response.data.reply_set
-                console.log('success')
+                // index 이용해서 reply 삭제하면 됨
+                this.reply_set.splice(index, 1)
             })
             .catch(response => {
                 console.log("Failed", response);
             });
-            this.fetchReplies();
-            
-        
         }
     },
 
@@ -227,21 +210,16 @@ export default {
             immediate: true
         },
                 
-        'page' : function(newParam, oldParam){
+        page : function(newParam, oldParam){
             this.paging(newParam)
         }
     },
 
     mounted() {
-
-
-
-
         this.user_id = localStorage.getItem('user');
         for (let i in this.reply_set) {
             this.reply_set[i].update = false
         }
-
         this.set_page();
     },
 

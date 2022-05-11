@@ -5,6 +5,17 @@ from authentication.models import User
 
 
 class EventGroup(models.Model):
+    # 이게... 모든 event의 subclass에도 똑같이?
+    # 휴가에도 종류가 있음
+    # 구분이 필요함.
+    # privateEvent, Vacation, Task
+
+    TYPE_CHOICES = (
+        ('Ev', 'Event'),
+        ('Va', 'Vacation'),
+        ('Ta', 'Task'),
+    )
+    type = models.CharField(max_length=2, choices=TYPE_CHOICES)
     name = models.CharField(max_length=20)
     color = models.CharField(verbose_name="color", max_length=7)
     # for private event
@@ -37,5 +48,12 @@ class Event(models.Model):
     relatedPeople = models.ManyToManyField(User, related_name= 'people')
     group = models.ForeignKey(EventGroup, on_delete= models.CASCADE, null= True)
     title = models.CharField(max_length= 50)
+    description = models.TextField(default = "", blank= True, null= True)
     
+
+
+class Vacation(Event):
+    isPermmitted = models.BooleanField(default= False)
+    
+
 

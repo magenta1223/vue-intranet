@@ -40,188 +40,29 @@
             @clickSchedule="onClickSchedule"
             @clickTimezonesCollapseBtn="onClickTimezonesCollapseBtn"
             />
-            <v-btn
-            class="mx-2"
-            fab
-            color="indigo"
-            
-            >
-                <v-icon>
-                    mdi-plus
-                </v-icon>
-            </v-btn>
         </v-col>
     </v-row>
 
-    <!--Add Private Event Modal-->
-    <v-row justify="center">
-        <v-col>
-            <v-dialog
-            v-model="dialog"
-            persistent
-            max-width="600px"
-            >
-
-                <v-card>
-                    <v-card-title>
-                        <span class="text-h5">Add Event</span>
-                    </v-card-title>
-                    <v-card-text>
-                        <v-row>
-                            <v-col cols="10">
-                                <v-select
-                                v-model="eventType"
-                                item-text="name"
-                                item-value="bgColor"
-                                :items="privateCalendars"
-                                label="View Type"
-                                outlined
-                                
-                                ></v-select>
-                            </v-col>
-                            <v-col>
-                                <v-btn
-                                class="ma-2 pa-0 align-center"
-                                outlined
-                                fab
-                                color="indigo"
-                                @click="openAddType()"
-                                >
-                                <v-icon>mdi-pencil</v-icon>
-                                </v-btn>
-                            </v-col>
-                        </v-row>
-                    </v-card-text>
-                    <v-card-text>
-                        <v-text-field placeholder="Subject"></v-text-field>
-                    </v-card-text>
-                    <v-card-text>
-                        <v-text-field placeholder="Location"></v-text-field>
-                    </v-card-text>
-
-
-
-                    <v-card-text>
-                        <v-menu
-                            v-model="startPicker"
-                            :close-on-content-click="closeByclick"
-                            :nudge-right="40"
-                            transition="scale-transition"
-                            offset-y
-                            min-width="auto"
-                        >
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-text-field
-                                    v-model="startDate"
-                                    label="시작 날짜"
-                                    prepend-icon="mdi-calendar"
-                                    readonly
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    @click="closeByclick = false"
-                                ></v-text-field>
-                            </template>
-                            <v-date-picker
-                            v-model="startDate"
-                            @input="pickerOff(startPicker)"
-                            ></v-date-picker>
-                        </v-menu>
-                    </v-card-text>
-                    <v-card-text>
-                        <v-menu
-                            v-model="endPicker"
-                            :close-on-content-click="closeByclick"
-                            :nudge-right="40"
-                            transition="scale-transition"
-                            offset-y
-                            min-width="auto"
-                        >
-                            <template v-slot:activator="{ on, attrs }">
-                                <v-text-field
-                                    v-model="endDate"
-                                    label="종료 날짜"
-                                    prepend-icon="mdi-calendar"
-                                    readonly
-                                    v-bind="attrs"
-                                    v-on="on"
-                                    @click="closeByclick = false"
-                                ></v-text-field>
-                            </template>
-                            <v-date-picker
-                            v-model="endDate"
-                            @input="pickerOff(endPicker)"
-                            ></v-date-picker>
-                        </v-menu>
-                    </v-card-text>
-
-                    <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn
-                            color="blue darken-1"
-                            text
-                            @click="dialog = false"
-                        >
-                            Close
-                        </v-btn>
-                        <v-btn
-                            color="blue darken-1"
-                            text
-                            @click="dialog = false"
-                        >
-                            Save
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
-        </v-col>
-    </v-row>
-    
+    <!-- slot을 이용해 내용을 정의하는 방법 https://goddino.tistory.com/93 -->
+    <AddEventModal
+        :calendarGroups="privateCalendars"
+        :dialog="dialog"
+        :default_date="default_date"
+        :schedule="schedule"
+        @_dialog="setDialog"
+        @newEvent="addNewEvent"
+        @newGroup="addNewGroup"/>
+    <SchduleDetailModal 
+    v-if="open" 
+    :event="now_event" 
+    @updateEvent="updateEvent"
+    @deleteEvent="deleteEvent"/>
     <!-- Add Private Event Type Modal -->
-    <v-row justify="center">
-        <v-col>
-            <v-dialog
-            v-model="newType"
-            persistent
-            max-width="600px"
-            >
-                <v-card>
-                    <v-card-title>
-                        <span class="text-h5">Add Type</span>
-                    </v-card-title>
-
-                    <v-card-text>
-                        <v-text-field placeholder="Name"></v-text-field>
-                    </v-card-text>
-                    <v-card-text>
-                        <v-text-field placeholder="Color"></v-text-field>
-                    </v-card-text>
-
-                    <v-card-actions>
-                        <v-spacer></v-spacer>
-                        <v-btn
-                            color="blue darken-1"
-                            text
-                            @click="newType = false"
-                        >
-                            Close
-                        </v-btn>
-                        <v-btn
-                            color="blue darken-1"
-                            text
-                            @click="newType = false"
-                        >
-                            Save
-                        </v-btn>
-                    </v-card-actions>
-                </v-card>
-            </v-dialog>
-        </v-col>
-    </v-row>
+    
 </v-container>
 </template>
 <script>
 import 'tui-calendar/dist/tui-calendar.css'
-//import Calendar from '@toast-ui/vue-calendar/src/Calendar.vue'
 import { Calendar } from '@toast-ui/vue-calendar';
 
 // If you use the default popups, use this.
@@ -231,6 +72,9 @@ import themeConfig from './myTheme.js'
 
 import axios from "axios";
 import setToken from "../../js_utils/token.js"
+
+import AddEventModal from './AddEvent.vue'
+import SchduleDetailModal from './ScheduleDetail.vue'
 
 let url = "http://127.0.0.1:8000/api/wrapper/";
 
@@ -243,55 +87,29 @@ export default {
             themeConfig : themeConfig,
             events : [],
             calendarList: [
-                {
-                    id: '0',
-                    name: 'Private',
-                    group : 'private',
-                    bgColor: '#ffffff',
-                    borderColor: '#ffffff'
-                },
-                {
-                    id: '1',
-                    name: 'Company',
-                    group : 'public',
-                    bgColor: '#00a9ff',
-                    borderColor: '#00a9ff'
-                }
+
             ],
-
-            //privateCalendars : [],
-
             scheduleList: [],
 
+            //scheduleList: [],
             selectedView: {
                     text : 'Monthly',
                     value : 'month'
             },
             viewModeOptions: [
-                {
-                    text : 'Monthly',
-                    value : 'month'
-                },
-                {
-                    text : 'Weekly',
-                    value : 'week'
-                },
-                                {
-                    text : 'Daily',
-                    value : 'day'
-                }
+                { text : 'Monthly', value : 'month' },
+                { text : 'Weekly', value : 'week' },
+                {text : 'Daily', value : 'day' }
             ],
 
             // event modal
             dialog: false, // control modal on/off
-            startPicker: false, // control modal on/off of start date's date-picker 
-            endPicker: false, // control modal on/off of end date's date-picker 
-            startDate: "", // start date for new private schedule
-            endDate: "", // start date for new private schedule
-            closeByclick : false, // controller to maintain date picker  
-            
-            eventType : {},
-            newType : false,
+            default_date : "",
+            schedule : "",
+
+            // schedule detail modal
+            now_event : "",
+            open : false
             }  
     },
 
@@ -300,56 +118,90 @@ export default {
             return (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10)
         },
 
-        parseEvent : function(event){
+        parseEvent : function(data, index){
+
+            let event = data.event
+            console.log(data)
+            let attendees = event.relatedPeople
 
             return {
                     id: event.id,
-                    calendarId: event.group,
+                    calendarId: String(event.group.id),//String(event.group), // undefined
                     title: event.title,
                     category: 'allday',
                     dueDateClass: '',
-                    start: Date.parse(event.start),
-                    end: Date.parse(event.end)
+                    start: event.start,
+                    end: event.end,
+                    body : event.description,
+                    isPrivate : event.group.is_private,
+                    attendees : attendees,
+                    raw : {
+                        author : String(event.author),
+                        wrapper_id : data.id,
+                        index : index
+                    }
                 }
 
         },
 
+        parseGroup : function(eventgroup) {
+            console.log(eventgroup)
+                eventgroup.id = String(eventgroup.id)
+                eventgroup.bgColor = eventgroup.color
+                eventgroup.borderColor = eventgroup.color
+                delete eventgroup.color   
+
+                return eventgroup
+        },
+
         to : function(direction) {  
-            this.$refs.tuiCalendar.invoke(direction); // tui calendar의 method를 call하기 위한 방법임. 
+            this.$refs.tuiCalendar.invoke(direction); // ~invoke : tui calendar의 method를 call하기 위한 방법임. 
         },
         // http://forward.nhnent.com/hands-on-labs/toastui.calendar-timetable/05%20events.html#id2
 
-        pickerOff : function(controller){
-            console.log('modal off')
-            controller = false  
-            this.closeByclick = true
+        setDialog : function(dialog) {
+            this.dialog = false
+            this.schedule = ""
+        },
+
+        deleteEvent : function(index){
+            this.scheduleList.splice(index, 1)
+        },
+
+        addNewEvent : function(newEvent){
+            if (newEvent.index !== -1){
+                this.deleteEvent(newEvent.index)
+            }
+
+            this.scheduleList.push( this.parseEvent(newEvent.data) )
+        },
+
+        addNewGroup : function(newGroup){
+            this.calendarList.push( this.parseGroup(newGroup) )
+        },
+
+        updateEvent : function(schedule){
+            this.schedule = schedule
+            this.dialog = true
             
         },
 
-        openAddType : function(){
-            this.newType = true
-        },
-
-        AddType : function(){
-            // private user event를 저장 
-            // axios로 추가하고
-            // calendar list에 추가하면
-            // computed로 privateCalendars에 추가됨
-        },
-        
         onAfterRenderSchedule(e) {
             // 캘린더 전체를 렌더링한 이후 매 싱글 스케쥴에 적용됨
             let schedule = e.schedule;
             // use the element
-            console.log(schedule);
         },
         onBeforeCreateSchedule(e) {
             // calendar cell 클릭하면 발생
-            console.log('before Create')
+            this.default_date = e.start._date.toISOString().substr(0, 10)
+            
             this.dialog = true
             // let the creation guide invisible
             let guide = e.guide;
             guide.clearGuideElement();
+
+            // 그냥 스케쥴 추가 버튼으로 여는게 제일 좋아보임
+            // 
             
         },
         
@@ -378,26 +230,51 @@ export default {
             // schedule을 클릭했을 때 발생
             // 툴팁 팝업 띄우고
             // private이면 삭제 / 수정 가능하게
-            // 아니면 그냥 정보만 보여주기
-            console.log('schedule click')
             
+
+            // 누르면 x, y 좌표 받고
+            // 열어 새끼야
+            // 좌표 말고 e.schedule이 바뀔 때 여는거 아님?
+            
+
+            
+            //this.openTooltip = true
+            //console.log(this.openTooltip)
+            //this.tooltip_x = e.event.pageX
+            //this.tooltip_y = e.event.pageY
+            this.now_event = e
+            this.open = true
+            console.log(this.now_event)
         },
         onClickTimezonesCollapseBtn(e) {
             // tz collapse 버튼을 눌렀을 때
             console.log('tz collapse') 
 
-        }
+
+        },
+        reopen : function(reopen){
+            this.close()
+            this.open() 
+        },
+
+        close : function(close){
+            this.openTooltip = false
+        },
+        // open : function(){
+        //     this.openTooltip = true
+        // },
+
 
         },
 
 
     components: {
-        Calendar
+        Calendar,
+        AddEventModal,
+        SchduleDetailModal
     },
 
     mounted() {
-        this.startDate = this.setDate()
-        this.endDate = this.setDate()
 
         axios({
             method : "GET",
@@ -405,16 +282,26 @@ export default {
             headers : setToken(),
             params : {
                 content_type : "event",
-                view_type : "calendar"
+                view_type : "calendar",
+                user_id : localStorage.getItem('user')
             }
         })
-        .then(response => {
-            let events = response.data
-            let parsed = []       
-            for (let i in events){
-                parsed.push(this.parseEvent(events[i]))
+        .then((response) => {
+            console.log('response', response)
+            let data = response.data.data
+            let eventgroups = response.data.eventgroups
+
+            for (let i in data){
+                this.scheduleList.push(this.parseEvent(data[i], i))
             }
-            this.scheduleList = parsed
+
+            for (let i in eventgroups){
+                this.calendarList.push(this.parseGroup(eventgroups[i]))
+           }
+
+
+
+
         })
         .catch(response => {
             console.log("Failed", response);
@@ -425,10 +312,9 @@ export default {
     computed: {
         privateCalendars : function(){
             let arr = Array()
-            let _calendarList = this.calendarList
-            for (let i in _calendarList){
-                if (_calendarList[i].group === 'private'){
-                    arr.push(_calendarList[i])
+            for (let i in this.calendarList){
+                if (this.calendarList[i].is_private === true){
+                    arr.push(this.calendarList[i])
                 }
             }
 

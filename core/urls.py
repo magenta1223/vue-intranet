@@ -2,29 +2,26 @@ from .views import wrapper, landing, reply
 from django.urls import include, path
 from rest_framework import routers, urls  # router import
 
+router = routers.DefaultRouter()  # DefaultRouter 설정
+router.register('wrapper', wrapper.WrapperViewSet)  # ViewSet과 함께 user라는 router 등록
+router.register('reply', reply.ReplyViewSet)  # ViewSet과 함께 user라는 router 등록
+
+# list route
+# url : /prefix/
+# 'get': 'list' 'post': 'create'
+# rapper에 method get으로 접근시 list 반환
+# post로 접근 시 create 결과 반환 뭐 이런식임
+
+# detail route
+
+# url : /prefix/pk/
+# 'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy',
+
+
 
 landing_view = landing.LandingView.as_view()
 
-wrapper_list = wrapper.WrapperListView.as_view()
-wrapper_detail = wrapper.WrapperDetailView.as_view()
-wrapper_update = wrapper.WrapperUpdateView.as_view()
-wrapper_delete = wrapper.WrapperDeleteView.as_view()
-
-reply_create = reply.ReplyCreateView.as_view()
-reply_list = reply.ReplyListView.as_view()
-reply_update = reply.ReplyUpdateView.as_view()
-reply_delete = reply.ReplyDeleteView.as_view()
-
 urlpatterns = [
+    path('', include(router.urls)),
     path('landing/', landing_view, name = "landing"),
-    path('wrapper/', wrapper_list, name='wrapper'),
-    path('wrapper/<int:pk>', wrapper_detail, name='wrapper_detail'),
-    path('wrapper/update/<int:pk>', wrapper_update, name='wrapper_update'),
-    path('wrapper/delete/<int:pk>', wrapper_delete, name='wrapper_delete'),
-
-    path('reply/', reply_create, name='reply_create'),
-    path('reply/list/', reply_list, name='reply_list'),
-    path('reply/<int:pk>', reply_update, name='reply_update'),
-    path('reply/delete/<int:pk>', reply_delete, name='reply_delete'),
-
 ]

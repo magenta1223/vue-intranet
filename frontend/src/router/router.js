@@ -13,6 +13,8 @@ import PostRetrieval from '../components/Board/PostRetrieval.vue'
 // calendar & events
 import ToastCalendar from '../components/Calendar/Calendar.vue'
 
+// profile
+import Profile from '../components/Profile/Profile.vue'
 
 
 // 중첩 라우팅
@@ -54,6 +56,11 @@ const router = new VueRouter({
             path: '/calendar', 
             component: ToastCalendar, //  
             name : 'calendar'
+        },
+        {
+            path: '/profile', 
+            component: Profile, //  
+            name : 'profile'
         },
     ]
 });

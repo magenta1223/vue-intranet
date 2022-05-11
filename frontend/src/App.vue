@@ -3,7 +3,8 @@
         <!-- 라우팅 링크 -->
         <!-- rounter link를 죽 모아서 사이드바로 -->
         <div id="container">
-
+            <!-- register 클릭 시 보여줄 수 있게 여기에서 작업하자
+            v-else 아래에 하나 더 넣으면 되겠죠~ -->
             <div v-if="isLogin">
                 <SideBar v-bind:login="this.isLogin" v-bind:categories="this.categories"/>
             </div>
